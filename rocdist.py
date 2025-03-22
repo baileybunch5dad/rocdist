@@ -46,7 +46,7 @@ import math
 
 class RocDist:
     def __init__(self, initialBins=100, initialSampleSize=10000, maxBins=5000, skipNans=True):
-        self.initialHoldvector = np.array(initialSampleSize, dtype=np.double)
+        self.initialHoldVector = np.empty((initialSampleSize), dtype=np.double)
         self.initialSampleSize = initialSampleSize
         self.initialBins = initialBins
         self.n = 0
@@ -89,6 +89,7 @@ class RocDist:
                         f = self.initialHoldvector[i]
                         index = int(self.nbins * ((f - self.min) / self.range)) 
                         self.bins[index] += 1
+                    self.initialHoldVector = None # free temporary vector to hold initial values
         else: # is a valid number, and already have bins
             if f > self.max: # add bins to the right
                 binstoadd = math.ceil(self.nbins * ((f - self.min)/self.range)) - self.bins
@@ -102,10 +103,12 @@ class RocDist:
                 self.min = f
             index = int(self.nbins * ((f - self.min) / self.range)) 
             self.bins[index] += 1
-
+        self.n += 1
 
 if __name__ == "__main__":
-    manyvalues = np.random.normal(loc=0.0, scale=1.0, size=1e6)
+    mu, sigma = 100.0, 10.0 # mean and standard deviation
+    manyvalues = np.random.normal(loc=mu, scale=sigma, size=10)
+    print(manyvalues)
     rd = RocDist()
     for m in manyvalues:
         rd.add(m)
