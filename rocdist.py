@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 # RocDist
 # Low Memory
@@ -44,7 +45,7 @@ import numpy as np
 #
 
 class RocDist:
-    def __init__(self, initialBins=100, initialSampleSize=1000, maxBins=5000, skipNans=True):
+    def __init__(self, initialBins=100, initialSampleSize=10000, maxBins=5000, skipNans=True):
         self.initialHoldvector = np.array(initialSampleSize, dtype=np.double)
         self.initialSampleSize = initialSampleSize
         self.initialBins = initialBins
@@ -56,25 +57,58 @@ class RocDist:
         self.range = 0.0
         self.maxBins = maxBins 
         self.dups = 0
+        self.dupVal = None
         self.nanSkipped = 0
         self.skipNans = skipNans
+        self.nansSkipped = 0
+        self.bins = None
+        self.nbins = 0
 
-    def add(self, f: np.double):
-        if f != f:
+    def add(self, f: np.double): # in the 'normal' case ( above sample size and within bins, make 0 method calls )
+        if f != f: # comparison to missing returns false, same as if np.isnan(f)
             if self.skipNans:
-                nansSkipped += 1
+                self.nansSkipped += 1
                 return
             else:
                 f = 0.
-        if self.n < self.initialSampleSize:
+        if self.n < self.initialSampleSize: # still collecting data for bin placement
             self.initialHoldVector[self.n] = f
             if self.min == None or self.min > f:        
                 self.min = f
             if self.max == None or self.max < f:
                 self.max = f
-        elif self.n == self.initialSampleSize:
-            self.range = self.max - self.min
-            self.binWidth = (self.max - self.min) / self.initialBins
+            if self.n == self.initialSampleSize-1:
+                if self.min == self.max: # defer setting up buckets until differing values received
+                    self.dups += self.n
+                    self.dupVal = f
+                    self.n = 0
+                else:
+                    self.range = self.max - self.min # set up bins now that sample is full
+                    self.bins = np.zeros(self.initialBins)
+                    for i in range(self.n): # this is not o(nlogn) but still o(n) slow 
+                        f = self.initialHoldvector[i]
+                        index = int(self.nbins * ((f - self.min) / self.range)) 
+                        self.bins[index] += 1
+        else: # is a valid number, and already have bins
+            if f > self.max: # add bins to the right
+                binstoadd = math.ceil(self.nbins * ((f - self.min)/self.range)) - self.bins
+                self.bins = np.ravel(self.bins,np.zeros(binstoadd))
+                self.nbins += binstoadd
+                self.max = f
+            if f < self.min: # add bins to the left
+                binstoadd = math.ceil(self.nbins * ((self.max - f)/self.range)) - self.bins
+                self.bins = np.ravel(np.zeros(binstoadd),self.bins)
+                self.nbins += binstoadd
+                self.min = f
+            index = int(self.nbins * ((f - self.min) / self.range)) 
+            self.bins[index] += 1
+
+
+if __name__ == "__main__":
+    manyvalues = np.random.normal(loc=0.0, scale=1.0, size=1e6)
+    rd = RocDist()
+    for m in manyvalues:
+        rd.add(m)
 
 
 
