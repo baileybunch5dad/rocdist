@@ -44,9 +44,11 @@ import math
 # similar handling to pathological clustering
 #
 # note, following numpy.histogram
-# All but the last (righthand-most) bin is half-open. In other words, if bins is:
+# All but the last (righthand-most) bin is half-open. 
+
+
 class RocDist:
-    def __init__(self, initialBins=100, initialSampleSize=10000, maxBins=5000, skipNans=True):
+    def __init__(self, initialBins=10, initialSampleSize=10000, maxBins=5000, skipNans=True):
         self.initialHoldVector = np.empty((initialSampleSize), dtype=np.double)
         self.initialSampleSize = initialSampleSize
         self.initialBins = initialBins
@@ -71,6 +73,21 @@ class RocDist:
             index -= 1
         return index
 
+    def buildInitialBucket(self):
+        self.range = self.max - self.min # set up bins now that sample is full
+        self.numBins = self.initialBins
+        self.bins = np.zeros(self.numBins)
+        for i in range(self.n): # this is not o(nlogn) but still o(n) slow 
+            f = self.initialHoldVector[i]
+            index = self.whichBucket(f)
+            self.bins[index] += 1
+            if self.dups > 0:
+                f = self.dupVal
+                index = self.whichBucket(f)
+                self.bins[index] += self.dups
+                self.dups = 0
+        self.initialHoldVector = None # free temporary vector to hold initial values
+
     def add(self, f: np.double): # in the 'normal' case ( above sample size and within bins, make 0 method calls )
         if f != f: # comparison to missing returns false, same as if np.isnan(f)
             if self.skipNans:
@@ -90,19 +107,7 @@ class RocDist:
                     self.dupVal = f
                     self.n = 0
                 else:
-                    self.range = self.max - self.min # set up bins now that sample is full
-                    self.numBins = self.initialBins
-                    self.bins = np.zeros(self.numBins)
-                    for i in range(self.n): # this is not o(nlogn) but still o(n) slow 
-                        f = self.initialHoldVector[i]
-                        index = self.whichBucket(f)
-                        self.bins[index] += 1
-                    if self.dups > 0:
-                        f = self.dupVal
-                        index = self.whichBucket(f)
-                        self.bins[index] += self.dups
-                        self.dups = 0
-                    self.initialHoldVector = None # free temporary vector to hold initial values
+                    self.buildInitialBucket()
         else: # is a valid number, and already have bins
             if f > self.max: # add bins to the right
                 binstoadd = math.ceil(self.numBins * ((f - self.min)/self.range)) - self.numBins
@@ -120,14 +125,33 @@ class RocDist:
             self.bins[index] += 1
         self.n += 1
 
-if __name__ == "__main__":
-    mu, sigma = 100.0, 10.0 # mean and standard deviation
-    manyvalues = np.random.normal(loc=mu, scale=sigma, size=1000000)
-    print(manyvalues)
-    rd = RocDist()
-    for m in manyvalues:
-        rd.add(m)
-
-
-
+    def histogram(self):
+        if self.n == 0:
+            if self.nansSkipped:
+                raise ValueError("autodetected range of [nan, nan] is not finite")
+            if self.dups == 0:
+                hist = np.zeros(10)
+                bins = np.linspace(0, 1, 11)
+                return hist, bins
+            else:
+                val = self.dupVal
+                hist = np.concatenate([np.zeros(5),[self.dups],np.zeros(4)]).astype(int)
+                bins = np.linspace(val-.5, val+.5,11)
+                return hist, bins
+        if self.n == 1:
+            val = self.initialHoldVector[0]
+            hist = np.concatenate((np.zeros(5),np.array([1]),np.zeros(4))).astype(int)
+            bins = np.linspace(val-.5, val+.5,11)
+            return hist, bins
+        if self.bins == None:
+            if self.min == self.max:
+                val = self.initialHoldVector[0]
+                hist = np.concatenate([np.zeros(5),[self.n],np.zeros(4)]).astype(int)
+                bins = np.linspace(val-.5, val+.5,11)
+                return hist, bins
+            else:
+                self.buildInitialBucket()
+                hist = self.bins
+                bins = np.linspace(self.max, self.max, self.numBins+1)
+                return hist, bins
 
