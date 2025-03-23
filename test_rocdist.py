@@ -80,3 +80,13 @@ def test_draws_from_random_normal():
     assert(np.array_equal(rochist, nphist))
     assert(np.array_equal(rocbins, npbins))
 
+def test_late_growth():
+    rd = RocDist()
+    sigma = 2
+    for mu in range(27,48,10):
+        vals = np.random.normal(loc=mu, scale=sigma, size=100000)
+        for v in vals:
+            rd.add(v)
+    rochist, rocbins = rd.histogram()
+    assert(len(rochist) > 10)
+    assert(len(rocbins) > 10)

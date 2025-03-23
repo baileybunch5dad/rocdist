@@ -32,6 +32,7 @@ class RocDist:
     def buildInitialBucket(self):
         self.range = self.max - self.min # set up bins now that sample is full
         self.numBins = self.initialBins
+        self.binWidth = self.range / self.numBins
         self.bins = np.zeros(self.numBins)
         for i in range(self.n): # this is not o(nlogn) but still o(n) slow 
             f = self.initialHoldVector[i]
@@ -66,17 +67,19 @@ class RocDist:
                     self.buildInitialBucket()
         else: # is a valid number, and already have bins
             if f > self.max: # add bins to the right
-                binstoadd = math.ceil(self.numBins * ((f - self.min)/self.range)) - self.numBins
+                binstoadd = math.ceil((f - self.max)/ self.binWidth)
                 newbins = np.zeros(binstoadd)
-                self.bins = np.concatenate((self.bins,newbins), axis=None)
+                self.bins = np.concatenate((self.bins,newbins), axis=None) # add to right
                 self.numBins += binstoadd
-                self.max = f
+                self.max += binstoadd * self.binWidth
+                self.range = self.max - self.min
             if f < self.min: # add bins to the left
-                binstoadd = math.ceil(self.numBins * ((self.max - f)/self.range)) - self.numBins
+                binstoadd = math.ceil((self.min-f)/self.binWidth)
                 newbins = np.zeros(binstoadd)
-                self.bins = np.concatenate((newbins,self.bins), axis=None)
+                self.bins = np.concatenate((newbins,self.bins), axis=None) # add to left
                 self.numBins += binstoadd
-                self.min = f
+                self.min -= binstoadd * self.binWidth
+                self.range = self.max - self.min
             index = self.whichBucket(f)
             self.bins[index] += 1
         self.n += 1
@@ -99,7 +102,7 @@ class RocDist:
             hist = np.concatenate((np.zeros(5),np.array([1]),np.zeros(4))).astype(int)
             bins = np.linspace(val-.5, val+.5,11)
             return hist, bins
-        elif self.bins == None:
+        if not isinstance(self.bins, np.ndarray):
             if self.min == self.max:
                 val = self.initialHoldVector[0]
                 hist = np.concatenate([np.zeros(5),[self.n],np.zeros(4)]).astype(int)
