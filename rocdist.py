@@ -143,7 +143,7 @@ class RocDist:
             hist = np.concatenate((np.zeros(5),np.array([1]),np.zeros(4))).astype(int)
             bins = np.linspace(val-.5, val+.5,11)
             return hist, bins
-        if self.bins == None:
+        elif self.bins == None:
             if self.min == self.max:
                 val = self.initialHoldVector[0]
                 hist = np.concatenate([np.zeros(5),[self.n],np.zeros(4)]).astype(int)
@@ -152,6 +152,9 @@ class RocDist:
             else:
                 self.buildInitialBucket()
                 hist = self.bins
-                bins = np.linspace(self.max, self.max, self.numBins+1)
+                bins = np.linspace(self.min, self.max, self.numBins+1)
                 return hist, bins
-
+        else:
+            hist = self.bins
+            bins = np.linspace(self.min, self.max, self.numBins+1)
+            return hist, bins

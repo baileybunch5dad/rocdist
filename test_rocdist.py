@@ -46,3 +46,37 @@ def test_repeat_single_value():
     nphist, npbins = np.histogram(vals)
     assert(np.array_equal(rochist, nphist))
     assert(np.array_equal(rocbins, npbins))
+
+def test_ten_evenly_spaced():
+    vals = np.arange(25,35)
+    rd = RocDist()
+    for v in vals:
+        rd.add(v)
+    rochist, rocbins = rd.histogram()
+    nphist, npbins = np.histogram(vals)
+    assert(np.array_equal(rochist, nphist))
+    assert(np.array_equal(rocbins, npbins))
+
+def test_repeated_groups_of_ten():
+    vals = np.arange(25,35)
+    vals = np.tile(vals,3).flatten()
+    rd = RocDist()
+    for v in vals:
+        rd.add(v)
+    rochist, rocbins = rd.histogram()
+    nphist, npbins = np.histogram(vals)
+    assert(np.array_equal(rochist, nphist))
+    assert(np.array_equal(rocbins, npbins))
+
+def test_draws_from_random_normal():    
+    mu = 17
+    sigma = 2
+    vals = np.random.normal(loc=mu, scale=sigma, size=100)
+    rd = RocDist()
+    for v in vals:
+        rd.add(v)
+    rochist, rocbins = rd.histogram()
+    nphist, npbins = np.histogram(vals)
+    assert(np.array_equal(rochist, nphist))
+    assert(np.array_equal(rocbins, npbins))
+
