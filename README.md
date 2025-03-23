@@ -1,5 +1,6 @@
 # rocdist
-Zero Sort Low Memory histogram builder
+
+Rocco's Zero Sort Low Memory Distribution Finder
 
 ### Author: Rocco Cannizzaro
 ### Typist: Chris

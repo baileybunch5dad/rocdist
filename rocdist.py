@@ -68,6 +68,8 @@ class RocDist:
         else: # is a valid number, and already have bins
             if f > self.max: # add bins to the right
                 binstoadd = math.ceil((f - self.max)/ self.binWidth)
+                if binstoadd + self.numBins > self.maxBins:
+                    raise Exception("Extreme tail values would causes excessive growth")
                 newbins = np.zeros(binstoadd)
                 self.bins = np.concatenate((self.bins,newbins), axis=None) # add to right
                 self.numBins += binstoadd
@@ -75,6 +77,8 @@ class RocDist:
                 self.range = self.max - self.min
             if f < self.min: # add bins to the left
                 binstoadd = math.ceil((self.min-f)/self.binWidth)
+                if binstoadd + self.numBins > self.maxBins:
+                    raise Exception("Extreme tail values would causes excessive growth")
                 newbins = np.zeros(binstoadd)
                 self.bins = np.concatenate((newbins,self.bins), axis=None) # add to left
                 self.numBins += binstoadd
