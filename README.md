@@ -55,4 +55,7 @@ If the number of buckets would grow by an exorbitant amount,
  distribution with different center and scale that the intial is received prior to the latter
  similar handling to pathological clustering
 
+ Also pathological, like quicksort, is when data are sorted, combined with a low number of initial bins.
+ This could cause growth to hit the limit and prematurely raise an exception.
+
  
