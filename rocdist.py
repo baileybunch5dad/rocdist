@@ -43,7 +43,8 @@ import math
 # distribution with different center and scale that the intial is received prior to the latter
 # similar handling to pathological clustering
 #
-
+# note, following numpy.histogram
+# All but the last (righthand-most) bin is half-open. In other words, if bins is:
 class RocDist:
     def __init__(self, initialBins=100, initialSampleSize=10000, maxBins=5000, skipNans=True):
         self.initialHoldVector = np.empty((initialSampleSize), dtype=np.double)
@@ -62,7 +63,13 @@ class RocDist:
         self.skipNans = skipNans
         self.nansSkipped = 0
         self.bins = None
-        self.nbins = 0
+        self.numBins = 0
+
+    def whichBucket(self, f: np.double) -> int:
+        index = int(self.numBins * ((f - self.min) / self.range)) 
+        if index == self.numBins:
+            index -= 1
+        return index
 
     def add(self, f: np.double): # in the 'normal' case ( above sample size and within bins, make 0 method calls )
         if f != f: # comparison to missing returns false, same as if np.isnan(f)
@@ -84,30 +91,38 @@ class RocDist:
                     self.n = 0
                 else:
                     self.range = self.max - self.min # set up bins now that sample is full
-                    self.bins = np.zeros(self.initialBins)
+                    self.numBins = self.initialBins
+                    self.bins = np.zeros(self.numBins)
                     for i in range(self.n): # this is not o(nlogn) but still o(n) slow 
-                        f = self.initialHoldvector[i]
-                        index = int(self.nbins * ((f - self.min) / self.range)) 
+                        f = self.initialHoldVector[i]
+                        index = self.whichBucket(f)
                         self.bins[index] += 1
+                    if self.dups > 0:
+                        f = self.dupVal
+                        index = self.whichBucket(f)
+                        self.bins[index] += self.dups
+                        self.dups = 0
                     self.initialHoldVector = None # free temporary vector to hold initial values
         else: # is a valid number, and already have bins
             if f > self.max: # add bins to the right
-                binstoadd = math.ceil(self.nbins * ((f - self.min)/self.range)) - self.bins
-                self.bins = np.ravel(self.bins,np.zeros(binstoadd))
-                self.nbins += binstoadd
+                binstoadd = math.ceil(self.numBins * ((f - self.min)/self.range)) - self.numBins
+                newbins = np.zeros(binstoadd)
+                self.bins = np.concatenate((self.bins,newbins), axis=None)
+                self.numBins += binstoadd
                 self.max = f
             if f < self.min: # add bins to the left
-                binstoadd = math.ceil(self.nbins * ((self.max - f)/self.range)) - self.bins
-                self.bins = np.ravel(np.zeros(binstoadd),self.bins)
-                self.nbins += binstoadd
+                binstoadd = math.ceil(self.numBins * ((self.max - f)/self.range)) - self.numBins
+                newbins = np.zeros(binstoadd)
+                self.bins = np.concatenate((newbins,self.bins), axis=None)
+                self.numBins += binstoadd
                 self.min = f
-            index = int(self.nbins * ((f - self.min) / self.range)) 
+            index = self.whichBucket(f)
             self.bins[index] += 1
         self.n += 1
 
 if __name__ == "__main__":
     mu, sigma = 100.0, 10.0 # mean and standard deviation
-    manyvalues = np.random.normal(loc=mu, scale=sigma, size=10)
+    manyvalues = np.random.normal(loc=mu, scale=sigma, size=1000000)
     print(manyvalues)
     rd = RocDist()
     for m in manyvalues:
