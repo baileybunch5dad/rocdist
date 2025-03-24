@@ -157,12 +157,17 @@ class RocDist:
         n = self.numBins
         midpoints = np.empty((n))
         counts = np.empty((n))
-        sorted_items = sorted(self.ht.items())
-        i = 0
-        for key, value in sorted_items:
-            midpoints[i] = key
-            counts[i] = value
-            i += 1
+        if not self.usingSparse:
+            for i in range(self.numBins):
+                midpoints[i] = self.midpoint(i)
+                counts[i] = self.bins[i]
+        else:
+            sorted_items = sorted(self.ht.items())
+            i = 0
+            for key, value in sorted_items:
+                midpoints[i] = key
+                counts[i] = value
+                i += 1
         return midpoints, counts
 
 
