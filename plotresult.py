@@ -18,4 +18,20 @@ def plot_sparse():
     plt.show()
 
 if __name__=="__main__":
-    plot_sparse()
+
+    # Data for the plot
+    x = [1, 2, 3, 4, 5]
+    y = [2, 4, 1, 3, 5]
+
+    # Create the plot
+    plt.plot(x, y)
+
+    # Add labels and title
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
+    plt.title("Hello, World! Plot")
+
+    # Display the plot
+    plt.show()
+
+    # plot_sparse()
