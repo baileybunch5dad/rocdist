@@ -91,7 +91,7 @@ def test_late_growth():
     assert(len(rochist) > 10)
     assert(len(rocbins) > 10)
 
-def test_sparse_two_groups():
+def test_sparse_multiple_groups():
     rd = RocDist()
     sigma = 2
     for mu in range(27,48,10):

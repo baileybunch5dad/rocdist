@@ -49,6 +49,7 @@ class RocDist:
             key = self.midpoint(index)
             self.ht[key] = count
         self.usingSparse = True
+        self.bins = None
 
     def buildInitialBucket(self):
         self.range = self.max - self.min # set up bins now that sample is full
@@ -156,9 +157,12 @@ class RocDist:
         n = self.numBins
         midpoints = np.empty((n))
         counts = np.empty((n))
-        for i in range(n):
-            midpoints[i] = self.midpoint(i)
-            counts[i] = self.ht[midpoints[i]]
+        sorted_items = sorted(self.ht.items())
+        i = 0
+        for key, value in sorted_items:
+            midpoints[i] = key
+            counts[i] = value
+            i += 1
         return midpoints, counts
 
 
