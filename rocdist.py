@@ -46,7 +46,8 @@ class RocDist:
         half = self.binWidth / 2
         for index in range(self.numBins):
             count = self.bins[index]
-            key = self.midpoint(index)
+            # key = self.midpoint(index)
+            key = index
             self.ht[key] = count
         self.usingSparse = True
         self.bins = None
@@ -107,12 +108,18 @@ class RocDist:
                 if not self.usingSparse: # dense case, grow vec
                     newbins = np.zeros(binstoadd)
                     self.bins = np.concatenate((newbins,self.bins), axis=None) # add to left
+                else: # since moving entire collection to the right, increment existing keys 
+                    incht = {}
+                    for k,v in self.ht.items():
+                        incht[k+newbins] = v
+                    self.ht = incht
                 self.numBins += binstoadd
                 self.min -= binstoadd * self.binWidth
                 self.range = self.max - self.min
             index = self.whichBucket(f)
             if self.usingSparse:
-                key = self.midpoint(index)
+                key = index
+                # key = self.midpoint(index)
                 self.ht.setdefault(key, 0)
                 self.ht[key] += 1
             else:
@@ -165,7 +172,7 @@ class RocDist:
             sorted_items = sorted(self.ht.items())
             i = 0
             for key, value in sorted_items:
-                midpoints[i] = key
+                midpoints[i] = self.midpoint(i)
                 counts[i] = value
                 i += 1
         return midpoints, counts
