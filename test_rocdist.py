@@ -90,3 +90,19 @@ def test_late_growth():
     rochist, rocbins = rd.histogram()
     assert(len(rochist) > 10)
     assert(len(rocbins) > 10)
+
+def test_sparse_two_groups():
+    rd = RocDist()
+    sigma = 2
+    for mu in range(27,48,10):
+        vals = np.random.normal(loc=mu, scale=sigma, size=100000)
+        for v in vals:
+            rd.add(v)
+    for mu in range(4000,80000,1000):
+        vals = np.random.normal(loc=mu, scale=sigma, size=100000)
+        for v in vals:
+            rd.add(v)
+    mid, cnt = rd.sparsehist()
+    assert(len(mid) > 10)
+    assert(len(cnt) > 10)
+

@@ -22,12 +22,33 @@ class RocDist:
         self.nansSkipped = 0
         self.bins = None
         self.numBins = 0
+        self.ht = None
+        self.usingSparse = False
+
+    def sigdigit(self, x, p=4): # round x to p digits so 'midpoints' are calculated consistently
+        x_positive = np.where(np.isfinite(x) & (x != 0), np.abs(x), 10**(p-1))
+        mags = 10 ** (p - 1 - np.floor(np.log10(x_positive)))
+        return np.round(x * mags) / mags
 
     def whichBucket(self, f: np.double) -> int:
         index = int(self.numBins * ((f - self.min) / self.range)) 
         if index == self.numBins:
             index -= 1
         return index
+    
+    def midpoint(self, index):
+        key = self.min + index * self.binWidth + self.binWidth/2
+        key = self.sigdigit(key)
+        return key
+    
+    def makesparse(self):
+        self.ht = {}
+        half = self.binWidth / 2
+        for index in range(self.numBins):
+            count = self.bins[index]
+            key = self.midpoint(index)
+            self.ht[key] = count
+        self.usingSparse = True
 
     def buildInitialBucket(self):
         self.range = self.max - self.min # set up bins now that sample is full
@@ -68,24 +89,33 @@ class RocDist:
         else: # is a valid number, and already have bins
             if f > self.max: # add bins to the right
                 binstoadd = math.ceil((f - self.max)/ self.binWidth)
-                if binstoadd + self.numBins > self.maxBins:
-                    raise Exception("Extreme tail values would causes excessive growth")
-                newbins = np.zeros(binstoadd)
-                self.bins = np.concatenate((self.bins,newbins), axis=None) # add to right
+                if (not self.usingSparse) and (binstoadd + self.numBins > self.maxBins):
+                    self.makesparse()
+                # self.makesparse changes self.usingsparse flag, so need to query again
+                if not self.usingSparse: # dense case, grow vec
+                    newbins = np.zeros(binstoadd)
+                    self.bins = np.concatenate((self.bins,newbins), axis=None) # add to right
                 self.numBins += binstoadd
                 self.max += binstoadd * self.binWidth
                 self.range = self.max - self.min
             if f < self.min: # add bins to the left
                 binstoadd = math.ceil((self.min-f)/self.binWidth)
-                if binstoadd + self.numBins > self.maxBins:
-                    raise Exception("Extreme tail values would causes excessive growth")
-                newbins = np.zeros(binstoadd)
-                self.bins = np.concatenate((newbins,self.bins), axis=None) # add to left
+                if (not self.usingSparse) and (binstoadd + self.numBins > self.maxBins):
+                    self.makesparse()
+                # self.makesparse changes self.usingsparse flag, so need to query again
+                if not self.usingSparse: # dense case, grow vec
+                    newbins = np.zeros(binstoadd)
+                    self.bins = np.concatenate((newbins,self.bins), axis=None) # add to left
                 self.numBins += binstoadd
                 self.min -= binstoadd * self.binWidth
                 self.range = self.max - self.min
             index = self.whichBucket(f)
-            self.bins[index] += 1
+            if self.usingSparse:
+                key = self.midpoint(index)
+                self.ht.setdefault(key, 0)
+                self.ht[key] += 1
+            else:
+                self.bins[index] += 1
         self.n += 1
 
     def histogram(self):
@@ -121,3 +151,15 @@ class RocDist:
             hist = self.bins
             bins = np.linspace(self.min, self.max, self.numBins+1)
             return hist, bins
+        
+    def sparsehist(self): # return midpoints and counts as two sorted vectors
+        n = self.numBins
+        midpoints = np.empty((n))
+        counts = np.empty((n))
+        for i in range(n):
+            midpoints[i] = self.midpoint(i)
+            counts[i] = self.ht[midpoints[i]]
+        return midpoints, counts
+
+
+
