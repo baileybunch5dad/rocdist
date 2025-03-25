@@ -6,7 +6,7 @@ from typing import Tuple
 # return the 100 quantiles regardless of input sample size
 # in normalized linear time, with normalized o(1) add
 class FixedArrayDist:
-    def __init__(self, initialBins=100000, initialSampleSize=10000, skipNans=False):
+    def __init__(self, initialBins=1000, initialSampleSize=10000, skipNans=False):
         self._sample = None
         self._min = None
         self._max = None
@@ -75,7 +75,7 @@ class FixedArrayDist:
                 index -= 1
             self._bins[index] += 1
         elif self._n == 0:
-            self._sample = np.empty(self._initialBins, dtype=type(x))
+            self._sample = np.empty(self._initialSampleSize, dtype=type(x))
             self._sample[0] = x
         elif self._n < self._initialSampleSize-1:
             self._sample[self._n] = x

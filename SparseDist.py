@@ -19,6 +19,7 @@ class SparseDist:
         self._usingHash = False
         self._n = 0
         self._initialBins = initialBins
+        self._expansions = 0
 
     def add(self, f: np.double): # in the 'normal' case ( above sample size and within bins, make 0 method calls )
         if f != f: # comparison to missing returns false, same as if np.isnan(f)
@@ -29,6 +30,7 @@ class SparseDist:
                 f = 0.
         if self._n >= self._sampleSize:
             if f > self._max: # need growth to the right 
+                self._expansions += 1
                 if not self._usingHash: # convert array to hash
                     self._ht = {}
                     for i in range(self._numBins): # after this, ht is populated with prior values
@@ -40,6 +42,7 @@ class SparseDist:
                 self._max = f  # binwidth does not change, but limits, range and numbins does
                 self._range = self._max - self._min
             elif f < self._min:
+                self._expansions += 1
                 binstoadd = math.ceil((self.min-f)/self.binWidth)
                 if not self._usingHash: # convert array to hash first time
                     self._ht = {}
@@ -84,19 +87,18 @@ class SparseDist:
         elif self._n <= self._sampleSize:
             return np.histogram(self._sample[0:self._n], bins=100)
         halfbin = self._binWidth/2
-        if self._usingHash:
+        if not self._usingHash: # everything fit in the initial bins
             midpoints = np.empty((self._numBins))
             counts = np.zeros((self._numBins), dtype=int)
             for i in range(self._numBins):
                 midpoints[i] = self._min + self._binWidth*i + halfbin
             return np.histogram(midpoints, weights=counts, bins=100)
-            pass
         else:
-            n = len(self.ht)
+            n = len(self._ht)
             midpoints = np.empty((n))
             counts = np.zeros((n), dtype=int)
             i = 0
-            for key,val in self.ht.items():
+            for key,val in self._ht.items():
                 midpoints[i] = self._min + self._binWidth*key + halfbin
                 counts[i] = val
                 i += 1

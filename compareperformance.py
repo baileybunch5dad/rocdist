@@ -24,7 +24,7 @@ def test_sparse_multiple_groups(rd):
     return hist, bins, nhist, nbins
 
 if __name__ == "__main__":
-    for rd in [FixedArrayDist(), DynamicDist(), SparseDist()]:
+    for rd in [DynamicDist(), SparseDist()]: # FixedDist()
         before = perf_counter()
         hist, bins, nhist, nbins = test_sparse_multiple_groups(rd)
         after = perf_counter()
