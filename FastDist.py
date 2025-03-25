@@ -6,7 +6,7 @@ from typing import Tuple
 # return the 100 quantiles regardless of input sample size
 # in normalized linear time, with normalized o(1) add
 class FastDist:
-    def __init__(self, initialBins=10000, initialSampleSize=10, skipNans=False):
+    def __init__(self, initialBins=100000, initialSampleSize=10000, skipNans=False):
         self._sample = None
         self._min = None
         self._max = None
@@ -34,7 +34,7 @@ class FastDist:
         oldBinWidth = oldRange / oldNumBins
         oldBinHalf = oldBinWidth / 2
         newRange = newMax - newMin
-        newBins = np.zeros(newNumBins)
+        newBins = np.zeros(newNumBins, dtype=int)
         for i in range(oldNumBins):
             value = oldMin + oldBinWidth * i + oldBinHalf
             count = oldBins[i]

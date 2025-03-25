@@ -87,6 +87,18 @@ def test_draws_from_random_normal():
     assert(np.array_equal(rochist, nphist))
     assert(np.array_equal(rocbins, npbins))
 
+def test_large_normal():
+    rd = getDist()
+    mu = 1000
+    sigma = 300
+    vals = np.random.normal(loc=mu, scale=sigma, size=1000000)
+    for v in vals:
+        rd.add(v)
+    rochist, rocbins = rd.histogram()
+    nphist, npbins = np.histogram(vals, bins=100)
+    assert(np.array_equal(rochist, nphist))
+    assert(np.array_equal(rocbins, npbins))
+
 def test_late_growth():
     rd = getDist()
     sigma = 2
