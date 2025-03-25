@@ -38,7 +38,7 @@ class RocDist:
     
     def midpoint(self, index):
         key = self.min + index * self.binWidth + self.binWidth/2
-        key = self.sigdigit(key)
+        # key = self.sigdigit(key) # guantee same number of significant digits
         return key
     
     def makesparse(self):
