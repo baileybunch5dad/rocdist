@@ -151,9 +151,11 @@ class RocDist:
                 bins = np.linspace(val-.5, val+.5,11)
                 return hist, bins
             else:
-                self.buildInitialBucket()
-                hist = self.bins
-                bins = np.linspace(self.min, self.max, self.numBins+1)
+                hist = None
+                bins = None
+                # self.buildInitialBucket()
+                # hist = self.bins
+                # bins = np.linspace(self.min, self.max, self.numBins+1)
                 return hist, bins
         else:
             hist = self.bins
