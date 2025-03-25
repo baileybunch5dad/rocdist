@@ -5,7 +5,7 @@ from typing import Tuple
 
 # return the 100 quantiles regardless of input sample size
 # in normalized linear time, with normalized o(1) add
-class FastDist:
+class FixedArrayDist:
     def __init__(self, initialBins=100000, initialSampleSize=10000, skipNans=False):
         self._sample = None
         self._min = None

@@ -127,57 +127,46 @@ class RocDist:
         self.n += 1
 
     def histogram(self):
+        hist = None
+        bins = None
         if self.n == 0:
             if self.nansSkipped:
                 raise ValueError("autodetected range of [nan, nan] is not finite")
             if self.dups == 0:
                 hist = np.zeros(10)
                 bins = np.linspace(0, 1, 11)
-                return hist, bins
             else:
                 val = self.dupVal
                 hist = np.concatenate([np.zeros(5),[self.dups],np.zeros(4)]).astype(int)
                 bins = np.linspace(val-.5, val+.5,11)
-                return hist, bins
         if self.n == 1:
             val = self.initialHoldVector[0]
             hist = np.concatenate((np.zeros(5),np.array([1]),np.zeros(4))).astype(int)
             bins = np.linspace(val-.5, val+.5,11)
-            return hist, bins
         if not isinstance(self.bins, np.ndarray):
             if self.min == self.max:
                 val = self.initialHoldVector[0]
                 hist = np.concatenate([np.zeros(5),[self.n],np.zeros(4)]).astype(int)
                 bins = np.linspace(val-.5, val+.5,11)
-                return hist, bins
             else:
-                hist = None
-                bins = None
-                # self.buildInitialBucket()
-                # hist = self.bins
-                # bins = np.linspace(self.min, self.max, self.numBins+1)
-                return hist, bins
-        else:
-            hist = self.bins
-            bins = np.linspace(self.min, self.max, self.numBins+1)
-            return hist, bins
-        
-    def sparsehist(self): # return midpoints and counts as two sorted vectors
-        n = self.numBins
-        midpoints = np.empty((n))
-        counts = np.empty((n))
-        if not self.usingSparse:
-            for i in range(self.numBins):
+                n = self.numBins
+                midpoints = np.empty((n))
+                counts = np.zeros((n), dtype=int)
+                sorted_items = sorted(self.ht.items())
+                i = 0
+                for key, value in sorted_items:
+                    midpoints[i] = self.midpoint(i)
+                    counts[i] = value
+                    i += 1
+                hist, bins = np.histogram(midpoints, bins=100, weights=counts)
+        else:                
+            n = self.numBins
+            midpoints = np.empty((n))
+            for i in range(n):
                 midpoints[i] = self.midpoint(i)
-                counts[i] = self.bins[i]
-        else:
-            sorted_items = sorted(self.ht.items())
-            i = 0
-            for key, value in sorted_items:
-                midpoints[i] = self.midpoint(i)
-                counts[i] = value
-                i += 1
-        return midpoints, counts
+            hist, bins = np.histogram(midpoints, bins=100, weights=counts)
+    
+        return hist, bins
 
 
 

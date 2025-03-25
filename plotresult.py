@@ -1,4 +1,4 @@
-from FastDist import FastDist
+from FixedArrayDist import FastDist
 from DynamicDist import DynamicDist
 import numpy as np
 import matplotlib.pyplot as plt

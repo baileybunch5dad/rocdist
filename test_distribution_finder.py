@@ -3,7 +3,7 @@ from rocdist import RocDist
 import math
 import numpy as np
 from DynamicDist import DynamicDist
-from FastDist import FastDist
+from FixedArrayDist import FastDist
 
 def getDist():
     # return DynamicDist()
