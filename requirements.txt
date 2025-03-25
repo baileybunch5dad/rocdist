@@ -2,3 +2,4 @@ pydantic
 pytest
 numpy
 typing
+matplotlib
