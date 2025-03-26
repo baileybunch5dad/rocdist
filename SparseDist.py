@@ -1,23 +1,15 @@
 import numpy as np
-import math
-from enum import Enum
-from typing import Dict
-
-class State(Enum):
-    COLLECTING_SAMPLES = 1
-    HIST_ARRAY = 2
-    HASHTABLE = 3
 
 class SparseDist:
     def __init__(self, sampleSize=10000, initialBins = 1000, skipNans=True):
-        self._sampleSize = sampleSize
+        self._sampleSize : int = sampleSize
         self._n : int = 0
         self._min : np.double = None
         self._binWidth : np.double = 0.0
         self._nansSkipped : int = 0
         self._skipNans : bool = skipNans
         self._initialBins = initialBins
-        self._bins = np.empty((sampleSize), dtype=np.double) 
+        self._bins = np.empty((sampleSize), dtype=np.double) # switches from array to hash 
 
     def add(self, f: np.double): # in the 'normal' case ( above sample size and within bins, make 0 method calls )
         if f != f: # comparison to missing returns false, same as if np.isnan(f)
