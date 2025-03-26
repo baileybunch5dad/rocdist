@@ -27,9 +27,8 @@ class SparseDist:
             else:
                 f = 0.
         if self._n >= self._sampleSize:
-            index = (f - self._min) // self._binWidth # // is python floor operator, allow negative keys
-            index = int(index)
-            # if index == self._numBins: # end interval is opens, priors are closed
+            index = int((f - self._min) // self._binWidth) # // is python floor operator, allow negative keys, //-3.2 is -4.0
+            # if index == self._numBins: # end interval is open, priors are closed
             #     index -= 1            
             self._bins[index] = self._bins.get(index,0) + 1     
             if len(self._bins) > 4*self._initialBins: # rebalance
