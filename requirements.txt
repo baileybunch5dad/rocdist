@@ -3,3 +3,6 @@ pytest
 numpy
 typing
 matplotlib
+timing
+pandas
+logging

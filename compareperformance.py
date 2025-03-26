@@ -19,8 +19,14 @@ def test_sparse_multiple_groups(rd):
         bigarray = np.concatenate((bigarray, vals), axis=0)
         for v in vals:
             rd.add(v)
-    hist, bins = rd.histogram()
-    nhist, nbins = np.histogram(bigarray, bins=100)
+    if isinstance(rd, DynamicDist):
+        hist, bins = rd.histogram(n_bins = 100)
+        n_bins = int(np.ceil((np.max(bigarray) - np.min(bigarray))/rd.bin_size))
+    else:
+        hist, bins = rd.histogram()
+        n_bins = 100            
+    # hist, bins = rd.histogram()
+    nhist, nbins = np.histogram(bigarray, bins=n_bins)
     return hist, bins, nhist, nbins
 
 if __name__ == "__main__":
