@@ -6,3 +6,4 @@ matplotlib
 timing
 pandas
 logging
+pandas

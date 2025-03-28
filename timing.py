@@ -16,7 +16,8 @@ class Timer:
                           , "startTime": None
                           }
    
-   def __init__(self, logger = None):
+   def __init__(self, enabled = True, logger = None):
+      self.enabled = enabled;
       self.logger = logger
       if not self.logger:
          logging.basicConfig(level = logging.INFO)
@@ -24,6 +25,8 @@ class Timer:
       self.performance = {}
       
    def start(self, methodName = None):
+      if not self.enabled:
+         return
       # Get the name of the calling method
       methodName = methodName or sys._getframe(1).f_code.co_name
       # Get current performance stats
@@ -35,6 +38,8 @@ class Timer:
       
       
    def stop(self, methodName = None):
+      if not self.enabled:
+         return
       # Get the name of the calling method
       methodName = methodName or sys._getframe(1).f_code.co_name
       # Get current performance stats
@@ -51,9 +56,13 @@ class Timer:
    
 
    def getStats(self):
+      if not self.enabled:
+         return
       return pd.DataFrame.from_dict(self.performance, orient = "index")
    
    def showStats(self, methodName = None):
+      if not self.enabled:
+         return
       methods = methodName or self.performance.keys()
       for method in methods:
          performance = self.performance.get(method)
