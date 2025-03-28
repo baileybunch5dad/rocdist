@@ -8,4 +8,3 @@ pandas
 logging
 pandas
 statsmodels
-statsmodels.stats
