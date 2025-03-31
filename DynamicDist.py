@@ -155,9 +155,7 @@ class DynamicDist:
       # Check if we are past the initialization stage
       if self.n >= self.buffer_size:
 
-         if len(self.bins) > 2*self.n_bins:
-            # Reallocate the bins
-            self.load_bins(redistribute = True)
+
 
          # Compute the center of the bin
          # key = (self.bin_offset + np.floor(x/self.bin_size)) * self.bin_size
@@ -167,7 +165,15 @@ class DynamicDist:
          if self.timer_enabled: self.timer.stop("add -> compute key")
          # Add the value to the bin
          if self.timer_enabled: self.timer.start("add -> update hash")
-         self.bins[key] = self.bins.get(key, 0) + 1
+         current_value = self.bins.get(key, 0)
+         if current_value == 0:
+            self.bins[key] = 1
+            # Only check for rebalance when a bin has been added
+            if len(self.bins) > 2*self.n_bins:
+               # Reallocate the bins
+               self.load_bins(redistribute = True)
+         else:
+            self.bins[key] = current_value + 1
          if self.timer_enabled: self.timer.stop("add -> update hash")
          self.n += 1
       # Check if we are in the initialization stage

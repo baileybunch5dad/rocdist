@@ -4,6 +4,7 @@ import numpy as np
 from DynamicDist import DynamicDist
 from FixedArrayDist import FixedArrayDist
 from time import perf_counter
+import cProfile
 
 def compare_to_numpy(rd, bigarray: np.array):
     before = perf_counter()
@@ -42,11 +43,14 @@ def test_sparse_multiple_groups(rd):
         bigarray = np.concatenate((bigarray, vals), axis=0)
     return compare_to_numpy(rd, bigarray)
 
-if __name__ == "__main__":
-    for i in range(3):
+
+def Main():
+    for i in range(1):
         for whichTest in [test_random_uniform, test_random_uniform_monotonic, test_sparse_multiple_groups]:
             print(whichTest.__name__)
-            for rd in [DynamicDist(), SparseDist()]: # FixedDist()
+            for rd in [DynamicDist()]: # SparseDist, FixedDist()
                 hist, bins, nhist, nbins = whichTest(rd)
-            # print(hist.sum(), hist)
-            # print(nhist.sum(), nhist)
+
+
+if __name__ == "__main__":
+    cProfile.run('Main()')
