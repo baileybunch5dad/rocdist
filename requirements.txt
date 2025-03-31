@@ -8,3 +8,4 @@ pandas
 logging
 pandas
 statsmodels
+cProfile
