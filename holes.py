@@ -16,6 +16,7 @@ def main():
     hist, bins = rd.histogram()
     # print(f'{hist=} bins={np.round(bins,2)}')
     rd.add_many([1e-2,1e5])
+    rd.add_many(np.random.uniform(low=0, high=1e5, size=20000000))
     hist, bins = rd.histogram()
     print(f'{hist=} bins={np.round(bins,2)}')
 
@@ -43,5 +44,5 @@ def main():
     
     
 if __name__=="__main__":
-    main()
-    # cProfile.run('main()')
+    # main()
+    cProfile.run('main()')
