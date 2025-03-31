@@ -249,6 +249,7 @@ class DynamicDist:
          hist = np.fromiter(self.bins.values(), dtype = np.uint64, count = len(self.bins))
          bins = self.bin_offset + np.fromiter(self.bins.keys(), dtype = np.double, count = len(self.bins)) * self.bin_size
 
+
       # Performance Timer: Stop
       # if self.timer_enabled: self.timer.stop()
 

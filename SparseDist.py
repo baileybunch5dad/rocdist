@@ -16,7 +16,8 @@ class SparseDist:
 
     def midpointcounthist(self, bins : int = 1000):
         midpoints = self.bins.keys() 
-        midpoints = np.array(list(midpoints)).astype(float) + self.min + self.binWidth/2
+        midpoints = np.array(list(midpoints)).astype(float) * self.binWidth + self.min 
+        midpoints += self.binWidth/2
         counts = np.array(list(self.bins.values()))
         return np.histogram(midpoints, weights=counts, bins=bins)
     
