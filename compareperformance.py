@@ -108,7 +108,7 @@ def test_groups():
 
 # 1, -1, 2, -2, 3, -3, ...
 def test_oscillating():
-    bigarray = np.linspace(1,1000,1000000)
+    bigarray = np.linspace(1,1000,50000000)
     return np.array([bigarray,-bigarray]).T.ravel()
 
 def Main():
