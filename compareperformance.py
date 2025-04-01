@@ -6,6 +6,7 @@ from time import perf_counter
 import cProfile
 import matplotlib.pyplot as plt
 import inspect
+from matplotlib.axes import Axes
 
 
 #
@@ -46,50 +47,54 @@ def convertDynamicDistToNumpy(dd, n_bins=100):
     ddhist, ddbins = np.histogram(midpoints, weights=ddhist, bins=newbins)
     return ddhist, ddbins
  
-#
-# Overlay the hisogram of the predictor versus the actual
-#
-def graphit(testname: str, name: str, elapsed: float, rmse: float,
-            predhist: np.array, predbins: np.array,
-            acthist: np.array, actbins: np.array):
-    plt.stairs(acthist, actbins, label='numpy')
-    plt.stairs(predhist, predbins, label=name)
-    plt.legend()
-    plt.title(f'{testname} {name} Time={elapsed:.2f} RMSE={rmse:.2f}')
-    plt.show()
+
      
+#
+# for an algorithm and some data get the results, the time, and the error
+#
+def results_time_error(algorithm, bigarray: np.array, actualhist: np.array, actualbins: np.array):
+    before = perf_counter()
+    for v in bigarray: 
+        algorithm.add(v)
+    if isinstance(algorithm,DynamicDist):
+        predhist, predbins = convertDynamicDistToNumpy(algorithm, n_bins=100)
+    else:
+        predhist, predbins = algorithm.histogram()
+    # print(f'{actualhist.sum()=} {predhist.sum()=}')
+    elapsed = perf_counter() - before
+    rmse = getRMSE(predhist, predbins, actualhist, actualbins)
+    print(f'{type(algorithm).__name__} Time={elapsed:.1f} RMSE={rmse:.1f}')
+    return predhist, predbins, elapsed, rmse
+    
+
 #
 # Compare an algorithm that does not hold the entire data and must 'estimate'
 # an a given data set by refining a sample to something that hold the entire data
 #    
-def compare_to_numpy(bigarray: np.array):
-    testname = inspect.stack()[1].function
+def compare_to_numpy(ax, testfcn):
+    testname = testfcn.__name__
+    bigarray = testfcn()
+    # testname = inspect.stack()[1] # name of calling function
     actualhist, actualbins = np.histogram(bigarray, bins=100)
-    for algorithm in [DynamicDist(), SparseDist()]:
-        name = type(algorithm).__name__
-        before = perf_counter()
-        for v in bigarray: 
-            algorithm.add(v)
-        if isinstance(algorithm,DynamicDist):
-            predhist, predbins = convertDynamicDistToNumpy(algorithm, n_bins=100)
-        else:
-            predhist, predbins = algorithm.histogram()
-        # print(f'{actualhist.sum()=} {predhist.sum()=}')
-        elapsed = perf_counter() - before
-        rmse = getRMSE(predhist, predbins, actualhist, actualbins)
-        print(f'{testname} {name} Time={elapsed:.2f} RMSE={rmse:.2f}')
-        graphit(testname,name,elapsed,rmse,predhist, predbins, actualhist, actualbins)
+    dhist, dbins, dtime, derr = results_time_error(DynamicDist(), bigarray, actualhist, actualbins)
+    shist, sbins, stime, serr = results_time_error(SparseDist(), bigarray, actualhist, actualbins)
+    # Overlay the hisogram of the predictor versus the actual
+    ax.stairs(actualhist, actualbins, label='numpy')
+    ax.stairs(dhist, dbins, label=f'DynamicDist T={dtime:.1f}s RMSE={derr:.1f}' )
+    ax.stairs(shist, sbins, label=f'SparseDist  T={stime:.1f}s RMSE={serr:.1f}' )
+    ax.set_title(f'{testname}')
+    ax.legend()
 
-def test_random_uniform():
-    vals = np.random.uniform(low=0, high=100, size=100000000)
-    return compare_to_numpy(vals)
+# uniform distribution
+def test_uniform():
+    return np.random.uniform(low=0, high=100, size=100000000)
 
-def test_random_uniform_monotonic():
-    vals = np.random.uniform(low=0, high=100, size=100000000)
-    vals = np.sort(vals)
-    return compare_to_numpy(vals)
+# 1,2,3 increasing
+def test_monotonic():
+    return np.sort(np.random.uniform(low=0, high=100, size=100000000))
 
-def test_sparse_multiple_groups():
+# 1,2,3    100,101,102,   
+def test_groups():
     sigma = 5
     bigarray = np.empty((0))
     for mu in range(27,48,10):
@@ -99,15 +104,21 @@ def test_sparse_multiple_groups():
     for mu in range(4000,40000,200): # add to the right
         vals = np.random.normal(loc=mu, scale=sigma, size=1000000)
         bigarray = np.concatenate((bigarray, vals), axis=0)
-    return compare_to_numpy(bigarray)
+    return bigarray
+
+# 1, -1, 2, -2, 3, -3, ...
+def test_oscillating():
+    bigarray = np.linspace(1,1000,1000000)
+    return np.array([bigarray,-bigarray]).T.ravel()
 
 def Main():
-    for i in range(3):
-        for whichTest in [test_random_uniform, test_random_uniform_monotonic, test_sparse_multiple_groups]:
-            print(whichTest.__name__)
-            whichTest()
+    fig, axs = plt.subplots(2, 2)
+    compare_to_numpy(axs[0,0], test_uniform)
+    compare_to_numpy(axs[0,1], test_monotonic)
+    compare_to_numpy(axs[1,0], test_groups)
+    compare_to_numpy(axs[1,1], test_oscillating)
+    plt.show()
 
 if __name__ == "__main__":
     # cProfile.run('Main()')
     Main()
-    # print('Cumulative Time',cumsum)
