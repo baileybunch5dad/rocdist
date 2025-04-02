@@ -73,6 +73,7 @@ def results_time_error(algorithm, bigarray: np.array, actualhist: np.array, actu
 #    
 def compare_to_numpy(ax, testfcn):
     testname = testfcn.__name__
+    print(testname)
     bigarray = testfcn()
     # testname = inspect.stack()[1] # name of calling function
     actualhist, actualbins = np.histogram(bigarray, bins=100)
@@ -87,28 +88,28 @@ def compare_to_numpy(ax, testfcn):
 
 # uniform distribution
 def test_uniform():
-    return np.random.uniform(low=0, high=100, size=100000000)
+    return np.random.uniform(low=0, high=100, size=10000000)
 
 # 1,2,3 increasing
 def test_monotonic():
-    return np.sort(np.random.uniform(low=0, high=100, size=100000000))
+    return np.sort(np.random.uniform(low=0, high=100, size=10000000))
 
 # 1,2,3    100,101,102,   
 def test_groups():
     sigma = 5
     bigarray = np.empty((0))
     for mu in range(27,48,10):
-        vals = np.random.normal(loc=mu, scale=sigma, size=1000000)
+        vals = np.random.normal(loc=mu, scale=sigma, size=100000)
         bigarray = np.concatenate((bigarray, vals), axis=0)
     sigma = 700
-    for mu in range(4000,40000,200): # add to the right
+    for mu in range(4000,20000,2000): # add waves to the right
         vals = np.random.normal(loc=mu, scale=sigma, size=1000000)
         bigarray = np.concatenate((bigarray, vals), axis=0)
     return bigarray
 
 # 1, -1, 2, -2, 3, -3, ...
 def test_oscillating():
-    bigarray = np.linspace(1,1000,50000000)
+    bigarray = np.linspace(1,1000,5000000)
     return np.array([bigarray,-bigarray]).T.ravel()
 
 def Main():
