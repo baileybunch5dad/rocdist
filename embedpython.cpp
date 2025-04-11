@@ -98,13 +98,23 @@ int main() {
 
 
     // Create a Python list to represent the array of doubles
-    int n = 100;
+    int n = 1000;
     PyObject* pythonList = PyList_New(n); // 
     for(int i=0; i<n; i++) {
         PyList_SetItem(pythonList, i, PyFloat_FromDouble(i * 1.1));
     }
+    std::cout << "dd.add_many([ ";
+    for(int i=0;i<5;i++) {
+        PyObject *po = PyList_GetItem(pythonList, i);
+        std::cout << PyFloat_AsDouble(po) << " ";
+    }
+    std::cout << "... ";
+    for(int i=n-5;i<n;i++) {
+        PyObject *po = PyList_GetItem(pythonList, i);
+        std::cout << PyFloat_AsDouble(po) << " ";
+    }
+    std::cout << "])" << std::endl;
 
-    std::cout << "dd.add_many([0,1.1,2.2...])" << std::endl;
     // Call the Python function with the Python list as an argument
     PyObject_CallFunctionObjArgs(dynamicDist_add_manyFunction, pythonList, nullptr);
 
@@ -168,7 +178,5 @@ int main() {
     return 0;
 }
 
-// sudo yum update
-// sudo yum install python3-devel
-// g++ -o embed_python embed_python.cpp -I/usr/include/python3.x -lpython3.x
+
 
