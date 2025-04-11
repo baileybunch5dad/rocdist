@@ -40,6 +40,7 @@ int main() {
         return 1;
     }
 
+    std::cout << "dd = DynamicDist()" << std::endl;
     // import the file (module) for the class to load
     PyObject* dynamicDistModule = PyImport_ImportModule("DynamicDist");
     if (!dynamicDistModule) {
@@ -79,14 +80,33 @@ int main() {
         return 1;
     }
 
+    // Get the DynamicDist.add_many() function handle
+    PyObject* dynamicDist_add_manyFunction = PyObject_GetAttrString(dynamicDistInstance, "add_many");
+    if (!dynamicDist_add_manyFunction || !PyCallable_Check(dynamicDist_add_manyFunction)) {
+        PyErr_Print();
+        std::cerr << "Failed to find function 'add_many' within 'DynamicDist'" << std::endl;
+        return 1;
+    }
+
     // Create a PyTuple with one double element
     double myDouble = 3.14;
     PyObject* tuple = PyTuple_Pack(1, PyFloat_FromDouble(myDouble));
 
-    std::cout << "DynamicDist.add(3.14)" << std::endl;
+    std::cout << "dd.add(3.14)" << std::endl;
     // finally,  call the add() function
     PyObject_CallObject(dynamicDist_addFunction, tuple);
 
+
+    // Create a Python list to represent the array of doubles
+    int n = 100;
+    PyObject* pythonList = PyList_New(n); // 
+    for(int i=0; i<n; i++) {
+        PyList_SetItem(pythonList, i, PyFloat_FromDouble(i * 1.1));
+    }
+
+    std::cout << "dd.add_many([0,1.1,2.2...])" << std::endl;
+    // Call the Python function with the Python list as an argument
+    PyObject_CallFunctionObjArgs(dynamicDist_add_manyFunction, pythonList, nullptr);
 
     // Get the DynamicDist.histogram() function handle
     PyObject* dynamicDist_histogramFunction = PyObject_GetAttrString(dynamicDistInstance, "histogram");
@@ -96,9 +116,15 @@ int main() {
         return 1;
     }
 
-    std::cout << "h,b = DynamicDist.histogram()" << std::endl;
+    std::cout << "h,b = dd.histogram(n_bins=10)" << std::endl;
     // now get the histogram
-    PyObject* result = PyObject_CallObject(dynamicDist_histogramFunction, nullptr);
+
+    // Call the function with no keyword arguments
+    // PyObject* result = PyObject_CallObject(dynamicDist_histogramFunction, nullptr);
+    // Call the function with no keyword arguments
+    PyObject* kwargs = PyDict_New();
+    PyDict_SetItemString(kwargs, "n_bins", PyLong_FromLong(10)); // Named argument: n_bins=10
+    PyObject* result = PyObject_Call(dynamicDist_histogramFunction, PyTuple_New(0), kwargs);
     if (result && PyTuple_Check(result)) {
             // Extract the two arrays from the returned tuple
             PyObject* array1 = PyTuple_GetItem(result, 0);
@@ -128,6 +154,7 @@ int main() {
             Py_DECREF(array1);
             Py_DECREF(array2);
             Py_DECREF(result);
+            Py_DECREF(kwargs);
     } else {
         std::cerr << "Failed to call 'histogram' method and retrieve results." << std::endl;
         PyErr_Print();
