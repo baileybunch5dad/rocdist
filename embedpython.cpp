@@ -15,23 +15,12 @@ int main() {
 
     // make sure the embedded Python runs
     PyRun_SimpleString("import sys");
+    // // add the current directory
     PyRun_SimpleString("sys.path.append('.')");
     // PyRun_SimpleString("print(sys.path)");
     PyRun_SimpleString("from DynamicDist import DynamicDist");
 
-    // // add the current directory
-    // PyRun_SimpleString("sys.path.append('.')");    
-
-    // // add the site packages directory to find numpy
-    // std::string numpyPath = 
-    // "/usr/lib64/python3.6/site-packages"
-    // //"./.venv/lib/python3.11/site-packages"
-    // ;
-    // std::string pythonCode = "sys.path.append('" + numpyPath + "')";
-    // std::cout << pythonCode << std::endl;
-    // PyRun_SimpleString(pythonCode.c_str());    
-    
-    // Import NumPy module
+    // Import NumPy module to validate site-packages on path
     PyObject* numpyModule = PyImport_ImportModule("numpy");
 
     if (!numpyModule) {
@@ -39,8 +28,6 @@ int main() {
         Py_Finalize();
         return -1;
     }
-
-
 
     PyObject* mainModule = PyImport_AddModule("__main__");
     if ( !mainModule ) {

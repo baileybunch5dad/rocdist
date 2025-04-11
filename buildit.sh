@@ -1,3 +1,7 @@
+## sudo yum update
+## sudo yum install python3-devel
+## install sudo yum install platform-python-devel
+
 echo Compiling
 
 g++ -o cpp2py embedpython.cpp \
