@@ -5,7 +5,7 @@ import math
 
 class DynamicDist:
 
-   def __init__(self, n_bins: int = 1000, buffer_size: int = 100000, timer_enabled: bool = False):
+   def __init__(self, n_bins: int = 1000, buffer_size: int = 100000): # , timer_enabled: bool = False):
       # self.timer: Timer = Timer(enabled = timer_enabled)
       self.reset(n_bins = n_bins, buffer_size = buffer_size)
 
@@ -55,7 +55,7 @@ class DynamicDist:
       return group_bins, group_freqs
 
 
-   def load_bins(self, redistribute: bool = False):
+   def load_bins(self, redistribute: bool = False, strict = False):
       # Performance Timer: Start
       # self.timer.start()
 
@@ -94,7 +94,7 @@ class DynamicDist:
 
       if redistribute:
          # self.timer.start("load_bins: Dict --> Numpy Arrays")
-         data = np.fromiter(self.bins.keys(), dtype = np.double, count = len(self.bins))
+         data = np.fromiter(self.bins.keys(), dtype = int, count = len(self.bins))
          freqs = np.fromiter(self.bins.values(), dtype = np.uint64, count = len(self.bins))
 
          # Compute the new bin size
@@ -107,10 +107,13 @@ class DynamicDist:
          # Compute the new bin size
          max_value = self.bin_offset + np.nanmax(data) * self.bin_size
          min_value = self.bin_offset + np.nanmin(data) * self.bin_size
-         self.bin_offset = min_value
+         # self.bin_offset = min_value
          bin_size = (max_value - min_value)/self.n_bins
          # Compute the growth factor for the new bin size
-         growth_factor = math.ceil(bin_size/self.bin_size)
+         if strict:
+            growth_factor = math.ceil(bin_size/self.bin_size)
+         else:
+            growth_factor = min(2, math.ceil(bin_size/self.bin_size))
          # Set the new bin size
          self.bin_size = growth_factor * self.bin_size
          # Remap the data keys to account for the new bin size
@@ -154,21 +157,25 @@ class DynamicDist:
       # Check if we are past the initialization stage
       if self.n >= self.buffer_size:
 
-         if len(self.bins) > 2*self.n_bins:
-            # Reallocate the bins
-            self.load_bins(redistribute = True)
-
          # Compute the center of the bin
          # key = (self.bin_offset + np.floor(x/self.bin_size)) * self.bin_size
          # self.timer.start("add -> compute key")
          # key = self.bin_offset + (math.floor((x-self.bin_offset)/self.bin_size)) * self.bin_size
          key = int((x-self.bin_offset)//self.bin_size)
          # self.timer.stop("add -> compute key")
+
          # Add the value to the bin
          # self.timer.start("add -> update hash")
-         self.bins[key] = self.bins.get(key, 0) + 1
+         # Get the current count value from the dictionary (if present)
+         current_value = self.bins.get(key, 0)
+         self.bins[key] = current_value + 1
          # self.timer.stop("add -> update hash")
          self.n += 1
+
+         if current_value == 0 and len(self.bins) > 2*self.n_bins:
+            # Reallocate the bins
+            self.load_bins(redistribute = True)
+
       # Check if we are in the initialization stage
       else:
          # Add the value to the buffer
@@ -229,7 +236,7 @@ class DynamicDist:
       if n_bins:
          self.n_bins = n_bins
          
-      self.load_bins(redistribute = self.bins)
+      self.load_bins(redistribute = self.bins, strict = True)
 
       if self.n <= 1:
          # Special (degenerate) case, match whatever is produced by np.histogram
@@ -238,7 +245,12 @@ class DynamicDist:
       else:
          # bins = np.fromiter(self.bins.keys(), dtype = np.double, count = len(self.bins))
          hist = np.fromiter(self.bins.values(), dtype = np.uint64, count = len(self.bins))
-         bins = self.bin_offset + np.fromiter(self.bins.keys(), dtype = np.double, count = len(self.bins)) * self.bin_size
+         bins = self.bin_offset + np.fromiter(self.bins.keys(), dtype = int, count = len(self.bins)) * self.bin_size
+
+         # Sort the entries
+         sorted_idx = bins.argsort()
+         bins = bins[sorted_idx]
+         hist = hist[sorted_idx]
 
       # Performance Timer: Stop
       # self.timer.stop()
