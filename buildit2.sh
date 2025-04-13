@@ -4,7 +4,7 @@
 
 echo Compiling
 
-g++ -o cpp2py embedpython.cpp \
+g++ -o sos streamoversocket.cpp \
   -I/usr/include/python3.11 \
   -Wno-unused-result -Wsign-compare  -O2 -g -pipe -Wall \
   -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -Wp,-D_GLIBCXX_ASSERTIONS \
@@ -22,4 +22,4 @@ exit $?
 fi
 
 echo Running
-time ./cpp2py    
+time ./sos

@@ -114,9 +114,33 @@ int main() {
         std::cout << PyFloat_AsDouble(po) << " ";
     }
     std::cout << "])" << std::endl;
-
     // Call the Python function with the Python list as an argument
     PyObject_CallFunctionObjArgs(dynamicDist_add_manyFunction, pythonList, nullptr);
+    Py_DECREF(pythonList);
+
+    // time 1 million calls of 5k elements
+    n = 5000; 
+    int nCalls = 1000000;
+    std::cout << "listSize=" << n << ", nCalls=" << nCalls << ":dd.add_many()" << std::endl;
+    pythonList = PyList_New(n); // 
+    for(int i=0; i<n; i++) {
+        PyList_SetItem(pythonList, i, PyFloat_FromDouble(i * 1.1));
+    }
+    std::cout << "dd.add_many([ ";
+    for(int i=0;i<5;i++) {
+        PyObject *po = PyList_GetItem(pythonList, i);
+        std::cout << PyFloat_AsDouble(po) << " ";
+    }
+    std::cout << "... ";
+    for(int i=n-5;i<n;i++) {
+        PyObject *po = PyList_GetItem(pythonList, i);
+        std::cout << PyFloat_AsDouble(po) << " ";
+    }
+    std::cout << "])" << std::endl;
+
+    // Call the Python function 1 million times with the 5k Python list as an argument
+    for(int i=0;i<nCalls;i++)
+        PyObject_CallFunctionObjArgs(dynamicDist_add_manyFunction, pythonList, nullptr);
 
     // Get the DynamicDist.histogram() function handle
     PyObject* dynamicDist_histogramFunction = PyObject_GetAttrString(dynamicDistInstance, "histogram");
