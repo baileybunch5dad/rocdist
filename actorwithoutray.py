@@ -51,15 +51,16 @@ def start_reader_procs(qq: Queue, num_of_reader_procs: int) -> list:
 if __name__ == "__main__":
     num_dd_readers = 4
     qq = Queue()  # writer() writes to qq from _this_ process
-    for count in [10**4, 10**5, 10**6]:
-        assert 0 < num_dd_readers < 32
-        all_reader_procs = start_reader_procs(qq, num_dd_readers)
-        dynamicdist_writer(numcalls=count, num_processors = len(all_reader_procs), qq=qq)  # Queue stuff to all reader_p()
-        print("All reader processes are pulling numbers from the queue...")
+    for num_dd_readers in range(2,8,2):
+        for count in [10**4, 10**5, 10**6]:
+            assert 0 < num_dd_readers < 32
+            all_reader_procs = start_reader_procs(qq, num_dd_readers)
+            dynamicdist_writer(numcalls=count, num_processors = len(all_reader_procs), qq=qq)  # Queue stuff to all reader_p()
+            print("All reader processes are pulling numbers from the queue...")
 
-        _start = time.time()
-        for idx, a_reader_proc in enumerate(all_reader_procs):
-            print(f"    Waiting for reader {idx}")
-            a_reader_proc.join()  # Wait for a_reader_proc() to finish
-            print(f"     Reader {idx} done")
-        print(f"Sending count calls through Queue() took {time.time()-_start} seconds")
+            _start = time.time()
+            for idx, a_reader_proc in enumerate(all_reader_procs):
+                print(f"    Waiting for reader {idx}")
+                a_reader_proc.join()  # Wait for a_reader_proc() to finish
+                print(f"     Reader {idx} done")
+            print(f"Sending {count} calls through Queue() with {num_dd_readers} listeners took {time.time()-_start} seconds")
