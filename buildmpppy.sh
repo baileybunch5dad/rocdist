@@ -4,7 +4,7 @@
 
 echo Compiling
 
-g++ -o mpppy embeddedmultiprocesspython.cpp $(python3.11-config --cflags --ldflags)
+g++ -o mpppy embeddedmultiprocesspython.cpp $(python3.11-config --cflags --ldflags --embed)
 
 # g++ -o mpppy embeddedmultiprocesspython.cpp \
 #   -I/usr/include/python3.11 \
