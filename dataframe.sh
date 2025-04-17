@@ -1,0 +1,2 @@
+protoc --cpp_out=. --grpc_out=. --plugin=protoc-gen-grpc=/path/to/grpc_cpp_plugin usinggrpc.proto
+protoc --python_out=. --grpc_out=. --plugin=protoc-gen-grpc=/path/to/grpc_python_plugin usinggrpc.proto

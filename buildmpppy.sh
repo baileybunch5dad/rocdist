@@ -1,6 +1,8 @@
 ## sudo yum update
 ## sudo yum install python3-devel
-## install sudo yum install platform-python-devel
+## sudo yum install platform-python-devel
+## sudo yum groupinstall "Development Tools"
+## sudo yum install -y build-essential autoconf libtool pkg-config
 
 echo Compiling
 

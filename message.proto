@@ -1,0 +1,20 @@
+// message.proto
+syntax = "proto3";
+
+package message;
+
+// Define the service
+service MessageService {
+  // Send a message and get a reply
+  rpc SendMessage (MessageRequest) returns (MessageReply) {}
+}
+
+// The request message containing the user's message
+message MessageRequest {
+  string message = 1;
+}
+
+// The response message containing the server's reply
+message MessageReply {
+  string reply = 1;
+}

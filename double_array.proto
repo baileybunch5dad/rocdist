@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package doublearrayservice;
+
+// Service definition
+service DoubleArrayService {
+  // RPC method to send an array of doubles and receive a count
+  rpc SendDoubleArray(DoubleArrayRequest) returns (CountResponse) {}
+}
+
+// Message for sending an array of doubles
+message DoubleArrayRequest {
+  repeated double values = 1;
+}
+
+// Message for receiving a count
+message CountResponse {
+  int32 count = 1;
+}

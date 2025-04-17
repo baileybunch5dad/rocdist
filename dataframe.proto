@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+message ColumnData {
+  repeated double double_array = 1;
+  repeated string string_array = 2;
+}
+
+message DataFrame {
+  map<string, ColumnData> columns = 1;
+}
+
+service DataFrameService {
+  rpc SendDataFrame(DataFrame) returns (DataFrame);
+}
